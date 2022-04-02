@@ -27,7 +27,7 @@ struct Event
 };
 
 std::vector<Event> readfile(const char* filename);
-bool sort_x(const Event& e1, const Event& e2);
+bool sort(const Event& e1, const Event& e2);
 int sweep_line(std::vector<Event> lines);
 int horizontal_intersect(std::set<int> active, Event current);
 int vertical_intersect(std::set<int> active, Event current, int compare_x);
@@ -86,11 +86,11 @@ std::vector<Event> readfile(const char* filename)
         }
     }
     // sort by x coordinates before returning
-    std::sort(line_segments.begin(), line_segments.end(), sort_x);
+    std::sort(line_segments.begin(), line_segments.end(), sort);
     return line_segments;
 }
 
-bool sort_x(const Event& lhs, const Event& rhs)
+bool sort(const Event& lhs, const Event& rhs)
 {// sort by x coord, if x equal sort by type, if type equal sort by y
     if (lhs.p1.x == rhs.p1.x)
         return lhs.type == rhs.type ? lhs.p1.y < rhs.p1.y : lhs.type;
@@ -133,7 +133,7 @@ int horizontal_intersect(std::set<int> active, Event current)
 }
 
 int vertical_intersect(std::set<int> active, Event current, int compare_x)
-{// counts how mant vertical intersections occur
+{// counts how many vertical intersections occur
     int count = 0;
     if (current.p1.x == compare_x)
     {// remove the vertical lines < p1.y
