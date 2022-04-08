@@ -30,7 +30,7 @@ std::vector<Event> readfile(const char* filename);
 bool sort(const Event& e1, const Event& e2);
 int sweep_line(std::vector<Event> lines);
 int horizontal_intersect(std::set<int> active, Event current);
-int vertical_intersect(std::set<int> active, Event current, int compare_x);
+int vertical_intersect(std::set<int> active, Event current, int &compare_x);
 
 int main(int argc, char **argv)
 {
@@ -104,7 +104,6 @@ int sweep_line(std::vector<Event> line_segments)
     for (auto it : line_segments)
     {// traverse lines
         Event current = it;
-
         if (current.type == 0)
         {// vertical line
             // check if line contains horizontal intersects
@@ -118,6 +117,7 @@ int sweep_line(std::vector<Event> line_segments)
             active.insert(current.p1.y);
         }
         else // horizontal right event
+          if (!active.empty())
             active.erase(active.lower_bound(current.p2.y));
     }
     return count; 
@@ -132,7 +132,7 @@ int horizontal_intersect(std::set<int> active, Event current)
             active.upper_bound(std::max(current.p1.y, current.p2.y)));
 }
 
-int vertical_intersect(std::set<int> active, Event current, int compare_x)
+int vertical_intersect(std::set<int> active, Event current, int &compare_x)
 {// counts how many vertical intersections occur
     int count = 0;
     if (current.p1.x == compare_x)
