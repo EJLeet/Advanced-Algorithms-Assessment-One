@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <queue>
+#include <chrono>
 
 using std::cout;
 using std::endl;
@@ -30,6 +31,8 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    auto start = std::chrono::high_resolution_clock::now();
+
     std::unordered_map<std::string, int> words = load_words(target.size());
 
     // ensure both words are in the dictionary
@@ -47,7 +50,12 @@ int main(int argc, char **argv)
     // find the shortest distance ladder gram
     int distance = shortest_path_ladder_gram(source, target, words);
 
-    cout << "Distance from " << source << " to " << target << " = " << distance << endl;
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast
+                    <std::chrono::milliseconds> (stop - start).count();
+
+    cout << "Distance from " << source << " to " << target << " = " << 
+            distance << " and took " << duration / 1000.0 << " seconds" << endl;
 
     return 0;
 }
