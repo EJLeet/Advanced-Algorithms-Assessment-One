@@ -55,7 +55,7 @@ int main(int argc, char **argv)
                     <std::chrono::milliseconds> (stop - start).count();
 
     cout << "Distance from " << source << " to " << target << " = " << 
-            distance << " and took " << duration / 1000.0 << " seconds" << endl;
+            distance << " and took " << duration << " milliseconds" << endl;
 
     return 0;
 }

@@ -56,8 +56,8 @@ int main(int argc, char **argv)
 
     // Report results
     cout << "File: " << argv[1] << endl<< "Contains " << count
-         << " intersections and took " << (duration / 1000.0) 
-         << " seconds" << endl;
+         << " intersections and took " << duration
+         << " milliseconds" << endl;
 
     return 0;
 }

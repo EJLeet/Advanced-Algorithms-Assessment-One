@@ -40,7 +40,7 @@ int main(int argc, char** argv)
     auto duration = std::chrono::duration_cast
                     <std::chrono::milliseconds> (stop - start).count();
     
-    cout << "Program took " << duration << " seconds" << endl;
+    cout << "Program took " << duration << " milliseconds" << endl;
 
     return 0;
 }
