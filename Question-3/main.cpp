@@ -4,7 +4,6 @@
 #include <fstream>
 
 using std::cout;
-using std::cin;
 using std::endl;
 
 std::tuple<std::map<int, std::set<int>>, bool> determine(char* filename);
@@ -53,11 +52,12 @@ std::tuple<std::map<int, std::set<int>>, bool> determine(char* filename)
     std::ifstream file(filename);
 
     // read number of vertices and edges
-    int vertices, edges;
+    double vertices, edges;
     file >> vertices >> edges;
 
     // calculate density
-    double density = (2. * edges) / (vertices * (vertices - 1.));
+    //double density = (2. * edges) / (vertices * (vertices - 1.));
+    double density = edges / (vertices * (vertices - 1));
 
     /*
         we have a spare graph is density is less than 0.5
