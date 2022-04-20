@@ -14,9 +14,9 @@
 using std::cout;
 using std::endl;
 
-void ordered();
-void heuristic();
-void shuffle();
+void ordered(int i);
+void heuristic(int i);
+void shuffle(int i);
 void load_words(int word_length, 
                 std::unordered_map<std::string, std::vector<std::string>>& words, 
                 std::vector<std::string>& valid_words);
@@ -28,53 +28,62 @@ int dfs(std::unordered_map<std::string, std::vector<std::string>>& words,
 
 int main()
 {
-    // perform normal DFS
-    ordered();
+    for (int i = 4; i <= 15; i++)
+    {// loop across words of length 4 to 15 seperately
 
-    // perform heuristic based DFS
-    heuristic();
+        cout << "Finding Circular Sequences of Length: " << i << endl;
 
-    // Perform shuffled DFS
-    shuffle();
+        if (i == 4) //  this case is the same for all three algorithms
+            ordered(i);
+
+        else
+        {        
+            // perform normal DFS
+            ordered(i);
+
+            // perform heuristic based DFS
+            heuristic(i);
+
+            // Perform shuffled DFS
+            shuffle(i);
+        }
+
+        cout << endl;
+    }
 
     return 0;
 }
 
-void ordered()
+void ordered(int i)
 {/*
         This function performs a normal DFS based on the standard
         ordering of all valid words. This function will find a 
         sequence for all test cases but may not be the longest
         possible for words of length x. 
                                                                         */
-    cout << "Testing Order Based DFS....." << endl << endl;
 
-    for (int i = 4; i <= 15; i++)
-    {// loop across words of length 4 to 15 seperately
+    // initialise structures and timer
+    auto start = std::chrono::high_resolution_clock::now();
+    std::unordered_map<std::string, std::vector<std::string>> words;
+    std::vector<std::string> valid_words;
 
-        // initialise structures and timer
-        auto start = std::chrono::high_resolution_clock::now();
-        std::unordered_map<std::string, std::vector<std::string>> words;
-        std::vector<std::string> valid_words;
+    // load words
+    load_words(i, words, valid_words);
 
-        // load words
-        load_words(i, words, valid_words);
+    // computer the sequence length
+    int length = circular_sequence(i, words, valid_words);
 
-        // computer the sequence length
-        int length = circular_sequence(i, words, valid_words);
+    // compute time
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast
+                    <std::chrono::milliseconds> (stop - start).count();
 
-        // compute time
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast
-                        <std::chrono::milliseconds> (stop - start).count();
-
-        // report results
-        cout << "World Length: " << i << "\nSequence Length: " << length 
-             << "\nTime: " << duration << " ms" << endl << endl;
-    }  
+    // report results
+    cout << "Order Based DFS Sequence Length: " << length << std::setprecision(8)
+         << "\nTime: " << duration / 1000. << " seconds" << endl;
 }
 
-void heuristic()
+void heuristic(int i)
 {/*
     This function performs a normal DFS where the order of
     the valid words is based upon a heuristic. The heuristic 
@@ -84,51 +93,45 @@ void heuristic()
     means that the function will order all 'ea' key words
     in valid words first, followed by all 'ie' words.
                                                                 */
-    cout << "Testing Heuristic Based DFS....." << endl << endl;
 
-    for (int i = 4; i <= 15; i++)
-    {// loop across words of length 4 to 15 seperately
+    // initialise structures and timer
+    auto start = std::chrono::high_resolution_clock::now();
+    std::unordered_map<std::string, std::vector<std::string>> words;
+    std::vector<std::string> valid_words;
+    int length = 0;
 
-        // initialise structures and timer
-        auto start = std::chrono::high_resolution_clock::now();
-        auto elapsed = start;
-        std::unordered_map<std::string, std::vector<std::string>> words;
-        std::vector<std::string> valid_words;
-        int length = 0;
+    // load words into ordered and unordered structure
+    std::ifstream file("dictionary.txt"); 
+    std::string word;
+    std::map<std::string, std::vector<std::string>> w;
 
-        // load words into ordered and unordered structure
-        std::ifstream file("dictionary.txt"); 
-        std::string word;
-        std::map<std::string, std::vector<std::string>> w;
+    while (file >> word)
+        if (word.length() == i)
+        {
+            w[word.substr(word.size()-3, 2)].push_back(word); 
+            words[word.substr(word.size()-3, 2)].push_back(word);
+        }
+    
+    // add to valid words based on highest count
+    for (auto it = w.rbegin(); it != w.rend(); it++)
+        for (auto elem : it->second)
+            valid_words.push_back(elem);
 
-        while (file >> word)
-            if (word.length() == i)
-            {
-                w[word.substr(word.size()-3, 2)].push_back(word); 
-                words[word.substr(word.size()-3, 2)].push_back(word);
-            }
-        
-        // add to valid words based on highest count
-        for (auto it = w.rbegin(); it != w.rend(); it++)
-            for (auto elem : it->second)
-                valid_words.push_back(elem);
+    
+    // computer the sequence length
+    length = circular_sequence(i, words, valid_words);  
 
-        
-        // computer the sequence length
-        length = circular_sequence(i, words, valid_words);  
+    // compute time
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast
+                    <std::chrono::milliseconds> (stop - start).count();
 
-        // compute time
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast
-                        <std::chrono::milliseconds> (stop - start).count();
-
-        // report results
-        cout << "World Length: " << i << "\nSequence Length: " << length
-                << "\nTime: " << duration << " ms" << endl << endl;
-    }
+    // report results
+    cout << "Heuristic Based DFS Sequence Length: " << length << std::setprecision(8) 
+         << "\nTime: " << duration / 1000. << " seconds" << endl;
 }
 
-void shuffle()
+void shuffle(int i)
 {/* 
     This function performs a normal DFS based on the random
     ordering of all valid words. After a sequence is found
@@ -137,62 +140,43 @@ void shuffle()
     After the timer and that sequence has finished it will
     return the best sequence found in that time.
                                                                 */
-    cout << "Testing Random Shuffle Time Based DFS....." << endl << endl;  
 
-    for (int i = 4; i <= 15; i++)
-    {// loop across words of length 4 to 15 seperately
+    // initialise structures and timer
+    auto start = std::chrono::high_resolution_clock::now();
+    auto elapsed = start;
+    std::unordered_map<std::string, std::vector<std::string>> words;
+    std::vector<std::string> valid_words;
+    int best = 0, length = 0;
 
-        // initialise structures and timer
-        auto start = std::chrono::high_resolution_clock::now();
-        auto elapsed = start;
-        std::unordered_map<std::string, std::vector<std::string>> words;
-        std::vector<std::string> valid_words;
-        int best = 0, length = 0;
+    // load words
+    load_words(i, words, valid_words);
 
-        if (i == 4)
-        {// this will be the max so no need to random restart
+    while (elapsed - start < std::chrono::seconds(60))
+    {// run random restarts for 60 seconds recording the best sequence
 
-            // load words
-            load_words(i, words, valid_words);
+        // shuffle words
+        auto seed = std::default_random_engine {};
+        std::shuffle(valid_words.begin(), valid_words.end(), seed);
 
-            // computer the sequence length
-            length = circular_sequence(i, words, valid_words);
-        }
-        
-        else
-        { // shuffle valid words before passing
+        // computer the sequence length
+        length = circular_sequence(i, words, valid_words);
 
-            while (elapsed - start < std::chrono::seconds(60))
-            {// run random restarts for 60 seconds recording the best sequence
+        // record best sequence
+        if (best < length)
+            best = length;
 
-                // load words
-                load_words(i, words, valid_words);
+        // get current elapsed
+        elapsed = std::chrono::high_resolution_clock::now();
+    }
 
-                // shuffle words
-                auto seed = std::default_random_engine {};
-                std::shuffle(valid_words.begin(), valid_words.end(), seed);
+    // compute time
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast
+                    <std::chrono::milliseconds> (stop - start).count();
 
-                // computer the sequence length
-                length = circular_sequence(i, words, valid_words);
-
-                // record best sequence
-                if (best < length)
-                    best = length;
-
-                // get current elapsed
-                elapsed = std::chrono::high_resolution_clock::now();
-            }
-        }
-
-        // compute time
-        auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast
-                        <std::chrono::milliseconds> (stop - start).count();
-
-        // report results
-        cout << "World Length: " << i << "\nSequence Length: " << ((i == 4) ? length : best) 
-             << std::setprecision(8) << "\nTime: " << duration / 1000. << " seconds" << endl << endl;
-    } 
+    // report results
+    cout << "Random Shuffle Time Based DFS Sequence Length: " << best << std::setprecision(8)
+         << "\nTime: " << duration / 1000. << " seconds" << endl;
 }
 
 void load_words(int word_length, 
