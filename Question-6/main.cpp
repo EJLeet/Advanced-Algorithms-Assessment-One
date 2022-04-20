@@ -9,11 +9,13 @@
 #include <algorithm>
 #include <random>
 #include <iomanip>
+#include <map>
 
 using std::cout;
 using std::endl;
 
 void ordered();
+void heuristic();
 void shuffle();
 void load_words(int word_length, 
                 std::unordered_map<std::string, std::vector<std::string>>& words, 
@@ -28,6 +30,9 @@ int main()
 {
     // perform normal DFS
     ordered();
+
+    // perform heuristic based DFS
+    heuristic();
 
     // Perform shuffled DFS
     shuffle();
@@ -69,14 +74,68 @@ void ordered()
     }  
 }
 
+void heuristic()
+{/*
+    This function performs a normal DFS where the order of
+    the valid words is based upon a heuristic. The heuristic 
+    is the value of each key in the map structure. As an 
+    example, if the key 'ea' appears 5 times and 'ie' 
+    appears 3 times, the heuristic will be 'ea'. This
+    means that the function will order all 'ea' key words
+    in valid words first, followed by all 'ie' words.
+                                                                */
+    cout << "Testing Heuristic Based DFS....." << endl << endl;
+
+    for (int i = 4; i <= 15; i++)
+    {// loop across words of length 4 to 15 seperately
+
+        // initialise structures and timer
+        auto start = std::chrono::high_resolution_clock::now();
+        auto elapsed = start;
+        std::unordered_map<std::string, std::vector<std::string>> words;
+        std::vector<std::string> valid_words;
+        int length = 0;
+
+        // load words into ordered and unordered structure
+        std::ifstream file("dictionary.txt"); 
+        std::string word;
+        std::map<std::string, std::vector<std::string>> w;
+
+        while (file >> word)
+            if (word.length() == i)
+            {
+                w[word.substr(word.size()-3, 2)].push_back(word); 
+                words[word.substr(word.size()-3, 2)].push_back(word);
+            }
+        
+        // add to valid words based on highest count
+        for (auto it = w.rbegin(); it != w.rend(); it++)
+            for (auto elem : it->second)
+                valid_words.push_back(elem);
+
+        
+        // computer the sequence length
+        length = circular_sequence(i, words, valid_words);  
+
+        // compute time
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast
+                        <std::chrono::milliseconds> (stop - start).count();
+
+        // report results
+        cout << "World Length: " << i << "\nSequence Length: " << length
+                << "\nTime: " << duration << " ms" << endl << endl;
+    }
+}
+
 void shuffle()
 {/* 
-    Compute longest sequence using DFS with random ordering
-    of all valid words. After each sequence it will shuffle
-    the valid words again to ensure a new start node is 
-    chosen for the next DFS. This function will run for at 
-    least one minute per word length and will return the best 
-    sequence length found within that time for each length. 
+    This function performs a normal DFS based on the random
+    ordering of all valid words. After a sequence is found
+    it will shuffle the valid words and search for another
+    sequence. This will continue for at least one minute. 
+    After the timer and that sequence has finished it will
+    return the best sequence found in that time.
                                                                 */
     cout << "Testing Random Shuffle Time Based DFS....." << endl << endl;  
 
@@ -114,7 +173,7 @@ void shuffle()
                 std::shuffle(valid_words.begin(), valid_words.end(), seed);
 
                 // computer the sequence length
-                int length = circular_sequence(i, words, valid_words);
+                length = circular_sequence(i, words, valid_words);
 
                 // record best sequence
                 if (best < length)
