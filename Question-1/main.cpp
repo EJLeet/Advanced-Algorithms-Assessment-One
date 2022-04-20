@@ -136,6 +136,17 @@ std::vector<Event> readfile(const char *filename)
     return line_events;
 }
 
+bool event_sort(const Event &lhs, const Event &rhs)
+{ /*
+     This function first sorts by x coordinate. If the x coordinates
+     are equal it will sort by the y coordinate. If the y coordinate
+     is equal it will sort by the boolean is_left attribute.
+                                                                         */
+    if (lhs.x == rhs.x)
+        return (lhs.y == rhs.y) ? lhs.is_left : lhs.y < rhs.y;
+    return lhs.x < rhs.x;
+}
+
 int sweep_line(std::vector<Event> line_events)
 { /*
      This function performs the sweep line algorithm. It
@@ -176,17 +187,6 @@ int sweep_line(std::vector<Event> line_events)
                 }
     }
     return count;
-}
-
-bool event_sort(const Event &lhs, const Event &rhs)
-{ /*
-     This function first sorts by x coordinate. If the x coordinates
-     are equal it will sort by the y coordinate. If the y coordinate
-     is equal it will sort by the boolean is_left attribute.
-                                                                         */
-    if (lhs.x == rhs.x)
-        return (lhs.y == rhs.y) ? lhs.is_left : lhs.y < rhs.y;
-    return lhs.x < rhs.x;
 }
 
 int intersections(const Line &l1, const Line &l2)
