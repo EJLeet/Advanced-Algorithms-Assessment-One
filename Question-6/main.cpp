@@ -17,6 +17,7 @@ using std::endl;
 void ordered(int i);
 void heuristic(int i);
 void shuffle(int i);
+void heuristic_shuffle(int i);
 void load_words(int word_length, 
                 std::unordered_map<std::string, std::vector<std::string>>& words, 
                 std::vector<std::string>& valid_words);
@@ -46,6 +47,9 @@ int main()
 
             // Perform shuffled DFS
             shuffle(i);
+
+            // Perform shuffle and heuristic based DFS
+            heuristic_shuffle(i);
         }
 
         cout << endl;
@@ -143,7 +147,7 @@ void shuffle(int i)
 
     // initialise structures and timer
     auto start = std::chrono::high_resolution_clock::now();
-    auto elapsed = start;
+    auto elapsed = start, stop = start;
     std::unordered_map<std::string, std::vector<std::string>> words;
     std::vector<std::string> valid_words;
     int best = 0, length = 0;
@@ -152,7 +156,7 @@ void shuffle(int i)
     load_words(i, words, valid_words);
 
     while (elapsed - start < std::chrono::seconds(60))
-    {// run random restarts for 60 seconds recording the best sequence
+    {// run restarts for 60 seconds recording the best sequence
 
         // shuffle words
         auto seed = std::default_random_engine {};
@@ -161,21 +165,94 @@ void shuffle(int i)
         // computer the sequence length
         length = circular_sequence(i, words, valid_words);
 
-        // record best sequence
+        // record best sequence and its time
         if (best < length)
+        {
             best = length;
+            stop = std::chrono::high_resolution_clock::now();
+        }
+
+        // get current elapsed
+        elapsed = std::chrono::high_resolution_clock::now();
+    }
+
+    auto duration = std::chrono::duration_cast
+                    <std::chrono::milliseconds> (stop - start).count();
+    // report results
+    cout << "Random Shuffle Time Based DFS Sequence Length: " << best << std::setprecision(8)
+         << "\nTime: " << duration / 1000. << " seconds" << endl;
+}
+
+void heuristic_shuffle(int i)
+{/*
+    This function combines the heuristic and shuffled based
+    approaches above. It ranks words based on the heuristic 
+    above and shuffles each list of ranked words before
+    adding them to the valid words set. It does this rank
+    based shuffle after each successful sequence is found
+    for at least one minute. After the time is up it will
+    finish the seuence it is running before returning
+    the best sequence it found.
+                                                                */
+    // initialise structures and timer
+    auto start = std::chrono::high_resolution_clock::now();
+    auto elapsed = start, stop = start;
+    std::unordered_map<std::string, std::vector<std::string>> words;
+    std::vector<std::string> valid_words;
+    int length = 0, best = 0;
+
+    // load words into ordered and unordered structure
+    std::ifstream file("dictionary.txt"); 
+    std::string word;
+    std::map<std::string, std::vector<std::string>> w;
+
+    while (file >> word)
+        if (word.length() == i)
+        {
+            w[word.substr(word.size()-3, 2)].push_back(word); 
+            words[word.substr(word.size()-3, 2)].push_back(word);
+        }
+    
+    while (elapsed - start < std::chrono::seconds(60))
+    {// run restarts for 60 seconds recording the best sequence
+
+        for (auto it = w.rbegin(); it != w.rend(); it++)
+        {// loop through highest count of ordered structure
+
+            // save each highest count to temp
+            std::vector<std::string> temp;
+            for (auto elem : it->second)
+                temp.push_back(elem);
+
+            // shuffle words in temp
+            auto seed = std::default_random_engine {};
+            std::shuffle(temp.begin(), temp.end(), seed);
+
+            // add shuffled words of this length to valid words
+            for (auto t : temp)
+                valid_words.push_back(t);
+        }
+
+        // computer the sequence length
+        length = circular_sequence(i, words, valid_words);
+
+        // record best sequence and its time
+        if (best < length)
+        {
+            best = length;
+            stop = std::chrono::high_resolution_clock::now();
+        }
 
         // get current elapsed
         elapsed = std::chrono::high_resolution_clock::now();
     }
 
     // compute time
-    auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast
                     <std::chrono::milliseconds> (stop - start).count();
 
     // report results
-    cout << "Random Shuffle Time Based DFS Sequence Length: " << best << std::setprecision(8)
+    cout << "Heuristic Shuffle Time Based DFS Sequence Length: " << best << std::setprecision(8)
          << "\nTime: " << duration / 1000. << " seconds" << endl;
 }
 
