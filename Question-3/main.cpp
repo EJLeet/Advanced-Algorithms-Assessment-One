@@ -6,45 +6,35 @@
 using std::cout;
 using std::endl;
 
-std::tuple<std::map<int, std::set<int>>, bool> determine(char* filename);
-std::map<int, std::set<int>> construct_sparse(std::ifstream &file);
-std::map<int, std::set<int>> construct_dense(std::ifstream &file, double vertices);
-bool connected(int v, int u, std::map<int, std::set<int>> adj_list, bool type);
-std::set<int> get_neighbours(int v, std::map<int, std::set<int>> adj_list, bool type);
-
-int main(int argc, char** argv)
+class EfficientAdjacencyList
 {
-    if (argc < 2)
-    {// ensure filename is passed
-
-        cout << "ERROR! Expected filename" << endl;
-        exit(1);
-    }
-
-    // determine graph from the file
+    // structure to hold the adjacency list
     std::map<int, std::set<int>> adj_list;
-    bool type = false;
-    std::tie(adj_list, type) = determine(argv[1]);
 
-    // Set u and v for below tests
-    int v = 4, u = 6;
+    // variables relating to individual graphs
+    int edges = 0, vertices = 0;
+    double density = 0.;
+    bool sparse = false;
 
-    // Is vertex v vonnected to vertex u
-    cout << "Testing: Is vertex " << v << " connected to vertex " << u << "?" << endl;
-    cout << (connected(v, u, adj_list, type) == 1 ? "True" : "False") << endl;
+    // construct a sparse graph
+    void construct_sparse(std::ifstream &file);
     
-    // Produce a list of all vertices connected to v
-    cout << "Testing: Produce a list of all vertices connected to " << v << "..." << endl;
-    std::set<int> neighbours = get_neighbours(v, adj_list, type);
+    // construct a dense graph
+    void construct_dense(std::ifstream &file, double vertices);
 
-    for (auto it : neighbours)
-        cout << it << " ";
-    cout << endl;
+public:
 
-    return 0;
-}
+    // determine graph and appropriately load based on density
+    void determine(char* filename);
 
-std::tuple<std::map<int, std::set<int>>, bool> determine(char* filename)
+    // returns if vertex v is ocnnected to u
+    bool connected(int v, int u);
+
+    // returns the list of neighbours to v
+    std::set<int> get_neighbours(int v);
+};
+
+void EfficientAdjacencyList::determine(char* filename)
 {/* 
         This function takes the file passed from the 
         command line and determines what type of graph
@@ -56,46 +46,42 @@ std::tuple<std::map<int, std::set<int>>, bool> determine(char* filename)
     std::ifstream file(filename);
 
     // read number of vertices and edges
-    double vertices, edges;
     file >> vertices >> edges;
 
     // calculate density
-    double density = edges / (vertices * (vertices - 1));
+    density = edges / (vertices * (vertices - 1));
 
     /*
-        we have a spare graph is density is less than 0.5
-        we have a dense graph otherwise                     */ 
+        we have a sparse graph is density is less than 0.5
+        we have a dense graph otherwise                     
+                                                            */ 
     if (density < 0.5)
-        return {construct_sparse(file), true};
+        construct_sparse(file);
+
     else
-        return {construct_dense(file, vertices), false};
+        construct_dense(file, vertices);
 }
 
-std::map<int, std::set<int>> construct_sparse(std::ifstream &file)
+void EfficientAdjacencyList::construct_sparse(std::ifstream &file)
 {/*
         This function reads the file into a map. In the map
         the key is the vertex and the value is the set of
         edges that vertex points to.
                                                                 */
-    std::map<int, std::set<int>> adj_list;
-
-    // read in data points
+    sparse = true;
     int v, u;
     while (file >> v >> u)
         adj_list[v].emplace(u);
-
-    return adj_list;
 }
 
-std::map<int, std::set<int>> construct_dense(std::ifstream &file, double vertices)
+void EfficientAdjacencyList::construct_dense(std::ifstream &file, double vertices)
 {/*
         This function reads the file vertices times. Each
         iteration it holds all the edges for that current
         index. It then adds the inverse connections to 
         the map.
                                                                 */
-    std::map<int, std::set<int>> adj_list;
-
+    sparse = false;
     int v, u;
     for (int i = 0; i < vertices; i++)
     {// loop through each vertex
@@ -120,22 +106,21 @@ std::map<int, std::set<int>> construct_dense(std::ifstream &file, double vertice
                                                                 */
         for (int j = 0; j < vertices; j++)
             if ((j != i) && (!temp.count(j)))
-                    adj_list[i].emplace(j);
+                adj_list[i].emplace(j);
         
         // go back to beginning of file (after vertices and edges)
         file.seekg(4, std::ios::beg);
     }
-    return adj_list;
 }
 
-bool connected(int v, int u, std::map<int, std::set<int>> adj_list, bool type)
+bool EfficientAdjacencyList::connected(int v, int u)
 {/*
         This function performs a binary search of u on some 
         vertex v for some sparse or dense graph. If the graph
         is sparse it returns true if u is found. If the graph
         is dense it returns false.
                                                                 */
-    if (type) // graph is sparse
+    if (sparse) // graph is sparse
         return std::binary_search(adj_list.at(v).begin(), 
                                   adj_list.at(v).end(), u);
 
@@ -144,7 +129,7 @@ bool connected(int v, int u, std::map<int, std::set<int>> adj_list, bool type)
                                   adj_list.at(v).end(), u) ? 0 : 1;
 }
 
-std::set<int> get_neighbours(int v, std::map<int, std::set<int>> adj_list, bool type)
+std::set<int> EfficientAdjacencyList::get_neighbours(int v)
 {/*
         This function returns the neighbours (edges) of some
         vertex v. If the graph is sparse it simply prints
@@ -154,7 +139,7 @@ std::set<int> get_neighbours(int v, std::map<int, std::set<int>> adj_list, bool 
                                                                 */
     std::set<int> neighbours;
 
-    if (type)
+    if (sparse)
     {// graph is sparse
 
         auto it = adj_list.at(v);
@@ -171,4 +156,37 @@ std::set<int> get_neighbours(int v, std::map<int, std::set<int>> adj_list, bool 
                 neighbours.emplace(i);
     }
     return neighbours;
+}
+
+int main(int argc, char** argv)
+{
+    if (argc < 2)
+    {// ensure filename is passed
+
+        cout << "ERROR! Expected filename" << endl;
+        exit(1);
+    }
+
+    // create object
+    EfficientAdjacencyList graph;
+
+    // load graph into object
+    graph.determine(argv[1]);
+
+    // Set u and v for below tests
+    int v = 4, u = 6;
+
+    // Is vertex v vonnected to vertex u
+    cout << "Testing: Is vertex " << v << " connected to vertex " << u << "?" << endl;
+    cout << (graph.connected(v, u) == 1 ? "True" : "False") << endl;
+    
+    // Produce a list of all vertices connected to v
+    cout << "Testing: Produce a list of all vertices connected to " << v << "..." << endl;
+    std::set<int> neighbours = graph.get_neighbours(v);
+
+    for (auto it : neighbours)
+        cout << it << " ";
+    cout << endl;
+
+    return 0;
 }
