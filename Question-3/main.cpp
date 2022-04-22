@@ -10,7 +10,7 @@ std::tuple<std::map<int, std::set<int>>, bool> determine(char* filename);
 std::map<int, std::set<int>> construct_sparse(std::ifstream &file);
 std::map<int, std::set<int>> construct_dense(std::ifstream &file, double vertices);
 bool connected(int v, int u, std::map<int, std::set<int>> adj_list, bool type);
-void neighbours(int v, std::map<int, std::set<int>> adj_list, bool type);
+std::set<int> get_neighbours(int v, std::map<int, std::set<int>> adj_list, bool type);
 
 int main(int argc, char** argv)
 {
@@ -35,7 +35,11 @@ int main(int argc, char** argv)
     
     // Produce a list of all vertices connected to v
     cout << "Testing: Produce a list of all vertices connected to " << v << "..." << endl;
-    neighbours(v, adj_list, type);
+    std::set<int> neighbours = get_neighbours(v, adj_list, type);
+
+    for (auto it : neighbours)
+        cout << it << " ";
+    cout << endl;
 
     return 0;
 }
@@ -56,7 +60,6 @@ std::tuple<std::map<int, std::set<int>>, bool> determine(char* filename)
     file >> vertices >> edges;
 
     // calculate density
-    //double density = (2. * edges) / (vertices * (vertices - 1.));
     double density = edges / (vertices * (vertices - 1));
 
     /*
@@ -141,7 +144,7 @@ bool connected(int v, int u, std::map<int, std::set<int>> adj_list, bool type)
                                   adj_list.at(v).end(), u) ? 0 : 1;
 }
 
-void neighbours(int v, std::map<int, std::set<int>> adj_list, bool type)
+std::set<int> get_neighbours(int v, std::map<int, std::set<int>> adj_list, bool type)
 {/*
         This function returns the neighbours (edges) of some
         vertex v. If the graph is sparse it simply prints
@@ -149,24 +152,23 @@ void neighbours(int v, std::map<int, std::set<int>> adj_list, bool type)
         from 0 to the number of vertices and prints any value
         not present in the values of the map at v.
                                                                 */
+    std::set<int> neighbours;
+
     if (type)
     {// graph is sparse
 
         auto it = adj_list.at(v);
         for (auto i : it)
-            cout << i << " ";
-
-        cout << endl;
+            neighbours.emplace(i);
     }
+
     else
     {// graph is dense
 
         auto it = adj_list.at(v);
-
-        for (int j = 0; j <= adj_list.size(); j++)       
-            if (!it.count(j) && j != v)
-                cout << j << " ";
-    
-        cout << endl;
+        for (int i = 0; i <= adj_list.size(); i++)       
+            if (!it.count(i) && i != v)
+                neighbours.emplace(i);
     }
+    return neighbours;
 }
