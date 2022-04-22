@@ -112,8 +112,8 @@ void heuristic(int i)
     while (file >> word)
         if (word.length() == i)
         {
-            w[word.substr(word.size()-3, 2)].push_back(word); 
-            words[word.substr(word.size()-3, 2)].push_back(word);
+            w[word.substr(1, 2)].push_back(word); 
+            words[word.substr(1, 2)].push_back(word);
         }
     
     // add to valid words based on highest count
@@ -209,8 +209,8 @@ void heuristic_shuffle(int i)
     while (file >> word)
         if (word.length() == i)
         {
-            w[word.substr(word.size()-3, 2)].push_back(word); 
-            words[word.substr(word.size()-3, 2)].push_back(word);
+            w[word.substr(1, 2)].push_back(word); 
+            words[word.substr(1, 2)].push_back(word);
         }
     
     while (elapsed - start < std::chrono::seconds(60))
@@ -273,7 +273,7 @@ void load_words(int word_length,
     while (file >> word)
         if (word.length() == word_length)
         { 
-            words[word.substr(word.size()-3, 2)].push_back(word); 
+            words[word.substr(1, 2)].push_back(word); 
             valid_words.push_back(word);
         }
 }
@@ -343,8 +343,8 @@ int dfs(std::unordered_map<std::string, std::vector<std::string>>& words,
             visited.emplace(current);
 
             if(current_sequence.size() > sequence_length &&
-               current_sequence[0][current.length() - 3] == current[1] &&
-               current_sequence[0][current.length() - 2] == current[2])
+               current_sequence[0][1] == current[current.length() - 3] &&
+               current_sequence[0][2] == current[current.length() - 2])
             {// update sequence if it is current best and circular
 
                 longest_sequence = current_sequence;
@@ -352,7 +352,7 @@ int dfs(std::unordered_map<std::string, std::vector<std::string>>& words,
             }
 
             // branch out the DFS
-            for (std::string next : words[current.substr(1, 2)])
+            for (std::string next : words[current.substr(current.size()-3, 2)])
             // check the word against the second and third letter
 
                 if (visited.find(next) == visited.end())
