@@ -14,8 +14,9 @@ struct Edge
             : source(source), dest(dest), weight(weight) {}
 };
 
-std::tuple<std::vector<Edge>, int, int> readfile(char* filename, int v, int e);
-void bellman_ford(std::vector<Edge> graph, int vertices, int edges);
+std::tuple<std::vector<Edge>, int, int> readfile(char* filename);
+void bellman_ford(std::vector<int>& distance, std::vector<Edge>& graph, 
+                  int vertices, int edges);
 
 int main(int argc, char** argv)
 {
@@ -30,27 +31,37 @@ int main(int argc, char** argv)
 
     // load graph
     std::vector<Edge> graph;
-    int vertices, edges;
-    std::tie(graph, vertices, edges) = readfile(argv[1], 0, 0);
+    int vertices = 0, edges = 0;
+    std::tie(graph, vertices, edges) = readfile(argv[1]);
+
+    // initialise all distances as infinity
+    std::vector<int> distance(vertices, INT_MAX); 
+    distance[0] = 0; // source to source is 0 weight
 
     // perform Bellman-Ford
-    bellman_ford(graph, vertices, edges);
+    bellman_ford(distance, graph, vertices, edges);
+
+    // print distances
+    for (int i = 0; i < vertices; i++)
+        cout << "Shortest Path from Source to Vertex " << i 
+             << " = " << distance[i] << endl;
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast
-                    <std::chrono::milliseconds> (stop - start).count();
+                    <std::chrono::microseconds> (stop - start).count();
     
-    cout << "Program took " << duration << " milliseconds" << endl;
+    cout << "Program took " << duration << " microseconds" << endl;
 
     return 0;
 }
 
-std::tuple<std::vector<Edge>, int, int> readfile(char* filename, int v, int e)
+std::tuple<std::vector<Edge>, int, int> readfile(char* filename)
 {// loads graph into data structure
     std::vector<Edge> graph;
     std::ifstream file(filename);
     std::string line;
-
+    int v = 0, e = 0;
+    
     file >> v >> e;
     while (std::getline(file, line))
     {// read points inputed as source, dest, weight
@@ -64,12 +75,9 @@ std::tuple<std::vector<Edge>, int, int> readfile(char* filename, int v, int e)
     return {graph, v, e};
 }
 
-void bellman_ford(std::vector<Edge> graph, int vertices, int edges)
+void bellman_ford(std::vector<int>& distance, std::vector<Edge>& graph, 
+                  int vertices, int edges)
 {
-    // initialise all distances as infinity
-    std::vector<int> distance(vertices, INT_MAX); 
-    distance[0] = 0; // source to source is 0 weight
-
     // Relax edges |V| - 1 times to get shortest path from src
     for (int i = 1; i <= vertices - 1; i++) 
 
@@ -89,12 +97,6 @@ void bellman_ford(std::vector<Edge> graph, int vertices, int edges)
             && distance[graph[i].source] + graph[i].weight 
             < distance[graph[i].dest])
 
-            cout << "Graph contains a negative weighr cycle" << endl;
-    
-    // print distances
-    for (int i = 0; i < vertices; i++)
-
-        cout << "Shortest Path from Source to Vertex " << i 
-             << " = " << distance[i] << endl;
+            cout << "Graph contains a negative weight cycle" << endl;
 }
 

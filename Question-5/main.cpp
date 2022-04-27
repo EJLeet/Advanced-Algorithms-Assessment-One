@@ -9,12 +9,12 @@ using std::cout;
 using std::endl;
 
 std::unordered_map<std::string, int> load_words(int word_length);
-int shortest_path_ladder_gram(std::string source, std::string target,
-                              std::unordered_map<std::string, int> words);
+int shortest_path_ladder_gram(std::string& source, std::string& target,
+                              std::unordered_map<std::string, int>& words);
 int letter_swap(std::string source, std::string target,
-                std::unordered_map<std::string, int> words);
-int bbfs(std::string source, std::string target,
-         std::unordered_map<std::string, int> words);
+                std::unordered_map<std::string, int>& words);
+int bbfs(std::string& source, std::string& target,
+         std::unordered_map<std::string, int>& words);
 
 int main(int argc, char **argv)
 {
@@ -41,6 +41,7 @@ int main(int argc, char **argv)
         cout << "ERROR! " << source << " is not in the dictionary" << endl;
         exit(1);
     }
+
     if (words.find(target) == words.end())
     {
         cout << "ERROR! " << target << " is not in the dictionary" << endl;
@@ -50,12 +51,18 @@ int main(int argc, char **argv)
     // find the shortest distance ladder gram
     int distance = shortest_path_ladder_gram(source, target, words);
 
+
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast
                     <std::chrono::milliseconds> (stop - start).count();
 
-    cout << "Distance from " << source << " to " << target << " = " << 
-            distance << " and took " << duration << " milliseconds" << endl;
+    // display distance (or no solution found) and time
+    distance == -1 ? 
+        cout << "No solution from " << source << " to " << target << endl 
+             << "CPU time = " << duration << " milliseconds" << endl :
+
+        cout << "Distance from " << source << " to " << target << " = " << 
+             distance << endl << "CPU time = " << duration << " milliseconds" << endl;
 
     return 0;
 }
@@ -75,8 +82,8 @@ std::unordered_map<std::string, int> load_words(int word_length)
     return words;
 }
 
-int shortest_path_ladder_gram(std::string source, std::string target,
-                              std::unordered_map<std::string, int> words)
+int shortest_path_ladder_gram(std::string& source, std::string& target,
+                              std::unordered_map<std::string, int>& words)
 { /*
      This function first checks the trivial case where a letter can simply
      be swapped from source to target or target to source to provide a
@@ -98,7 +105,7 @@ int shortest_path_ladder_gram(std::string source, std::string target,
 }
 
 int letter_swap(std::string source, std::string target,
-                std::unordered_map<std::string, int> words)
+                std::unordered_map<std::string, int>& words)
 {
     char swap;
     int count = 0;
@@ -129,8 +136,8 @@ int letter_swap(std::string source, std::string target,
     return -1;
 }
 
-int bbfs(std::string source, std::string target,
-         std::unordered_map<std::string, int> words)
+int bbfs(std::string& source, std::string& target,
+         std::unordered_map<std::string, int>& words)
 {
     // queue to perform bfs from source word
     std::queue<std::string> start;
@@ -231,6 +238,5 @@ int bbfs(std::string source, std::string target,
             }
         }
     }
-    cout << "No Solution Found" << endl;
-    return 0;
+    return -1;
 }

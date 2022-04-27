@@ -52,12 +52,12 @@ int main(int argc, char **argv)
 
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast
-                    <std::chrono::milliseconds> (stop - start).count();
+                    <std::chrono::microseconds> (stop - start).count();
 
     // Report results
     cout << "File: " << argv[1] << endl<< "Contains " << count
          << " intersections and took " << duration
-         << " milliseconds" << endl;
+         << " microseconds" << endl;
 
     return 0;
 }
@@ -193,7 +193,7 @@ int intersections(const Line &l1, const Line &l2)
 { /*
      This function perfroms the counter clockwise algorithm 
      on two lines. If the ccw of these 2 lines is > 0 there 
-     can't be an intersection.Add 1 to count if the ccw is not > 0
+     can't be an intersection. Add 1 to count if the ccw is not > 0
                                                                      */
     return ((ccw(l1.p1, l1.p2, l2.p1) *
              ccw(l1.p1, l1.p2, l2.p2) > 0) ||

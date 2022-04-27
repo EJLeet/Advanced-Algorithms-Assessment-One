@@ -181,7 +181,7 @@ int dfs(std::unordered_map<std::string, std::vector<std::string>>& words,
     that we are at a new braching factor so we can pop a new
     word and go down a different path. This function checks if
     words create a circular sequence before adding them to the 
-    sequence. It will return the length of the first circulae
+    sequence. It will return the length of the longest circular
     sequence it finds.
                                                                     */
     // initialise structures used by DFS

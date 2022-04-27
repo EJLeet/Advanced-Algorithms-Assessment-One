@@ -9,78 +9,93 @@ class FastList
 {
     // store the index of each value
     std::array<int, N> index, value;
+
     // keep track of the length of the list compared to N
-    int space = 0;
+    int list_length = 0;
 
 public:
     // initialise the index array to -1
     FastList() { index.fill(-1); }
+
     // add items to the list
-    void add(int val);
+    void add(int item);
+
     // remove items from the list
-    void remove(int val);
+    void remove(int item);
+
     // clear the list
     void clear();
-    // return if the value is in the list
-    bool contains(int val) { return index[val] != -1 ; }
+
+    // return if the item is in the list
+    bool contains(int item) { return index[item] != -1 ; }
+
     // overload indexing operator
     int operator[](int it) { return value[it]; }
-    // return the size of the list - used for test cases
-    int size() { return space; }
+
+    // return the length of the list - used for test cases
+    int length() { return list_length; }
 };
 
 template<int N>
-void FastList<N>::add(int val)
+void FastList<N>::add(int item)
 {
-    // invalid value
-    if (val > N || val < 0)
-        cout << "ERROR! " << val << " must be > 0 and < "<< N << endl;
+    // invalid item
+    if (item > N || item < 0)
+        cout << "ERROR! " << item << " must be > 0 and < "<< N << endl;
     
     // item is already in list
-    else if(contains(val))
-        cout << "ERROR! " << val << " is already in list" << endl;
+    else if(contains(item))
+        cout << "ERROR! " << item << " is already in list" << endl;
 
     else
     {// otherwise add it to the list
-        index[val] = space;
-        value[space++] = val;
+        index[item] = list_length;
+        value[list_length++] = item;
     }
 }
 
 template<int N>
-void FastList<N>::remove(int val)
+void FastList<N>::remove(int item)
 {
-    if(!contains(val))
-    {// check if value is present
-        std::cout << val << " is not present in list" << endl;
+    if(!contains(item))
+    {// check if item is present
+        std::cout << item << " is not present in list" << endl;
         exit(1);
     }
 
-    // replace val with last item in value array
-    int it = index[val];
-    value[it] = value[space - 1];
+    // replace item with last item in value array
+    int it = index[item];
+    value[it] = value[list_length - 1];
 
     // update the index of the removed value
     index[value[it]] = it;
-    value[space] = -1;
+    value[list_length] = -1;
 
     // update index array
-    index[val] = -1;
-    space--;
+    index[item] = -1;
+    list_length--;
 }
 
 template<int N>
 void FastList<N>::clear()
 {
     // set all values in index to -1 
-    for (int i = 0; i < space; i++)
-        index[value[i]] = -1;
-    // reset space
-    space = 0;
+    for (int k = 0; k < list_length; k++)
+        index[value[k]] = -1;
+
+    // reset list_length
+    list_length = 0;
 }
 
 int main()
 {
+
+    /* 
+        This is the upper bound given in the problem statement.
+        It is hard coded and declared outside the class so it can
+        be declared constant and passed to the templated class
+        to initialise the list containers.
+                                                                    */                                                             
     const int n = 50;
 
     FastList<n> list = FastList<n>();
@@ -94,19 +109,21 @@ int main()
     list.add(22);
     list.add(17);
 
+    // Iterate
+    cout << "List after adding {4, 6, 2, 31, 22, 17}" << endl;
+    for(int i = 0; i < list.length(); i++)
+        cout << "Item " << i + 1 << " = " << list[i] << endl;
+    cout << endl;    
+
     // Add duplicate
     cout << "Testing Add Duplicate: " << endl;
     list.add(4);
+    cout << endl;    
 
     // Add out of bounds
     cout << "Testing Add Out of Bounds: " << endl;
     list.add(55);
-
-    // Iterate
-    cout << "Testing Iterate After Add: " << endl;
-    for(int i = 0; i < list.size(); i++)
-        cout << "Item " << i + 1 << " = " << list[i] << endl;;
-    cout << endl;
+    cout << endl;    
 
     // Delete
     cout << "Testing Delete: " << endl;
@@ -114,28 +131,28 @@ int main()
     list.remove(6);
 
     // Iterate
-    cout << "Testing Iterate After Deleting 22 and 6: " << endl;
-    for(int i = 0; i < list.size(); i++)
+    cout << "List after deleting {22, 6}" << endl;
+    for(int i = 0; i < list.length(); i++)
         cout << "Item " << i + 1 << " = " << list[i] << endl;
-    cout << endl;    
+    cout << endl;  
 
     // In the list
     cout << "Testing if item is in list: " << endl;
     cout << "Looking for 31... ";
-    if(list.contains(31))
-        cout << "31 is in the list" << endl;
+    list.contains(31) ? cout << "31 is in the list" << endl : 
+                        cout << "31 is not in the list" << endl;
+
     cout << "Looking for 6... ";
     list.contains(6) ? cout << "6 is in the list" << endl : 
                        cout << "6 is not in the list" << endl;
-
     cout << endl;
 
     // Clear
     cout << "Testing Clear: " << endl;
     list.clear();
     cout << "List contains the following items... " << endl;
-    for(int i = 0; i < list.size(); i++)
+    for(int i = 0; i < list.length(); i++)
         cout  << list[i] << " ";
-
+ 
     return 0;
 }
